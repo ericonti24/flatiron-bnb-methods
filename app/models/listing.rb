@@ -5,4 +5,25 @@ class Listing < ActiveRecord::Base
   has_many :reviews, :through => :reservations
   has_many :guests, :class_name => "User", :through => :reservations
   
+  validates_presence_of :address, :listing_type, :title, :description, :price, :neighborhood
+
+
+  def has_neighborhood
+    if !self.neighborhood
+      errors.add(:neighborhood_id, "can't be blank")
+    end
+  end
+
+  def occupied?(date1, date2)
+    self.reservations.any?{ |r|
+      r.starts?(date1, date2) || r.ends?(date1, date2) || r.overlaps?(date1, date2)
+    }
+  end
+
+  def average_review_rating
+    
+    self.reviews.reduce(0.0){ |sum, review|
+      sum += review.rating
+    }/self.reviews.count
+  end
 end
